@@ -11,6 +11,7 @@
 				class="dropdown-wrapper"
 			>
 				<BaguaSelect
+					v-if="cellId !== 'cell-1-1'"
 					:id="dropdown.id"
 					:model-value="dropdown.selectedValue"
 					:options="getFilteredOptions(index)"
