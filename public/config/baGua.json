@@ -1,0 +1,49 @@
+{
+  "version": "1.0.0",
+  "categories": ["天干", "地支", "八卦", "五行"],
+  "dropdownConfigs": {
+    "天干": [
+      { "id": "1", "label": "甲", "value": "jia" },
+      { "id": "2", "label": "乙", "value": "yi" },
+      { "id": "3", "label": "丙", "value": "bing" },
+      { "id": "4", "label": "丁", "value": "ding" },
+      { "id": "5", "label": "戊", "value": "wu" },
+      { "id": "6", "label": "己", "value": "ji" },
+      { "id": "7", "label": "庚", "value": "geng" },
+      { "id": "8", "label": "辛", "value": "xin" },
+      { "id": "9", "label": "壬", "value": "ren" },
+      { "id": "10", "label": "癸", "value": "gui" }
+    ],
+    "地支": [
+      { "id": "1", "label": "子", "value": "zi" },
+      { "id": "2", "label": "丑", "value": "chou" },
+      { "id": "3", "label": "寅", "value": "yin" },
+      { "id": "4", "label": "卯", "value": "mao" },
+      { "id": "5", "label": "辰", "value": "chen" },
+      { "id": "6", "label": "巳", "value": "si" },
+      { "id": "7", "label": "午", "value": "wu" },
+      { "id": "8", "label": "未", "value": "wei" },
+      { "id": "9", "label": "申", "value": "shen" },
+      { "id": "10", "label": "酉", "value": "you" },
+      { "id": "11", "label": "戌", "value": "xu" },
+      { "id": "12", "label": "亥", "value": "hai" }
+    ],
+    "八卦": [
+      { "id": "1", "label": "乾", "value": "qian" },
+      { "id": "2", "label": "坤", "value": "kun" },
+      { "id": "3", "label": "震", "value": "zhen" },
+      { "id": "4", "label": "巽", "value": "xun" },
+      { "id": "5", "label": "坎", "value": "kan" },
+      { "id": "6", "label": "离", "value": "li" },
+      { "id": "7", "label": "艮", "value": "gen" },
+      { "id": "8", "label": "兑", "value": "dui" }
+    ],
+    "五行": [
+      { "id": "1", "label": "金", "value": "jin" },
+      { "id": "2", "label": "木", "value": "mu" },
+      { "id": "3", "label": "水", "value": "shui" },
+      { "id": "4", "label": "火", "value": "huo" },
+      { "id": "5", "label": "土", "value": "tu" }
+    ]
+  }
+}

@@ -1,0 +1,221 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&display=swap");
+
+/* 中式水墨风格设计系统 */
+
+:root {
+  /* 主色调 - 黑白灰 */
+  --color-background: #fafaf8;
+  --color-foreground: #1a1a1a;
+  --color-card: #ffffff;
+  --color-sidebar: #f5f3f0;
+  --color-border: #e8e6e1;
+  --color-muted: #f0ede9;
+  --color-muted-foreground: #666666;
+  --color-input: #ffffff;
+
+  /* 主色 - 深青 */
+  --color-primary: #2c3e50;
+  --color-primary-hover: #34495e;
+  --color-primary-foreground: #ffffff;
+
+  /* 强调色 - 古铜红 */
+  --color-accent: #a0522d;
+  --color-accent-light: #cd853f;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* 间距 */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* 全局样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: "Noto Serif SC", "Microsoft YaHei", sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 水墨背景纹理效果 */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 20% 50%, rgba(0, 0, 0, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.01) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* 按钮样式 */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* 输入框样式 */
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1);
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted-foreground);
+}
+
+/* 动画 */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 工具类 */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.scale-in {
+  animation: scaleIn 0.3s ease-in-out;
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+/* 墨水效果类 */
+.ink-border {
+  border-color: var(--color-border);
+}
+
+.ink-transition {
+  transition: all 0.2s ease;
+}
+
+.ink-shadow {
+  box-shadow: var(--shadow-md);
+}
+
+/* 响应式容器 */
+@media (max-width: 1024px) {
+  :root {
+    --spacing-lg: 1.25rem;
+    --spacing-xl: 1.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+  }
+
+  body {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --spacing-md: 0.75rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.25rem;
+  }
+
+  body {
+    font-size: 13px;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  body::before {
+    display: none;
+  }
+}
