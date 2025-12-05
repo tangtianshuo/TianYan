@@ -1,49 +1,117 @@
 {
-  "version": "1.0.0",
-  "categories": ["天干", "地支", "八卦", "五行"],
-  "dropdownConfigs": {
-    "天干": [
-      { "id": "1", "label": "甲", "value": "jia" },
-      { "id": "2", "label": "乙", "value": "yi" },
-      { "id": "3", "label": "丙", "value": "bing" },
-      { "id": "4", "label": "丁", "value": "ding" },
-      { "id": "5", "label": "戊", "value": "wu" },
-      { "id": "6", "label": "己", "value": "ji" },
-      { "id": "7", "label": "庚", "value": "geng" },
-      { "id": "8", "label": "辛", "value": "xin" },
-      { "id": "9", "label": "壬", "value": "ren" },
-      { "id": "10", "label": "癸", "value": "gui" }
-    ],
-    "地支": [
-      { "id": "1", "label": "子", "value": "zi" },
-      { "id": "2", "label": "丑", "value": "chou" },
-      { "id": "3", "label": "寅", "value": "yin" },
-      { "id": "4", "label": "卯", "value": "mao" },
-      { "id": "5", "label": "辰", "value": "chen" },
-      { "id": "6", "label": "巳", "value": "si" },
-      { "id": "7", "label": "午", "value": "wu" },
-      { "id": "8", "label": "未", "value": "wei" },
-      { "id": "9", "label": "申", "value": "shen" },
-      { "id": "10", "label": "酉", "value": "you" },
-      { "id": "11", "label": "戌", "value": "xu" },
-      { "id": "12", "label": "亥", "value": "hai" }
-    ],
-    "八卦": [
-      { "id": "1", "label": "乾", "value": "qian" },
-      { "id": "2", "label": "坤", "value": "kun" },
-      { "id": "3", "label": "震", "value": "zhen" },
-      { "id": "4", "label": "巽", "value": "xun" },
-      { "id": "5", "label": "坎", "value": "kan" },
-      { "id": "6", "label": "离", "value": "li" },
-      { "id": "7", "label": "艮", "value": "gen" },
-      { "id": "8", "label": "兑", "value": "dui" }
-    ],
-    "五行": [
-      { "id": "1", "label": "金", "value": "jin" },
-      { "id": "2", "label": "木", "value": "mu" },
-      { "id": "3", "label": "水", "value": "shui" },
-      { "id": "4", "label": "火", "value": "huo" },
-      { "id": "5", "label": "土", "value": "tu" }
-    ]
-  }
+	"version": "1.1.0",
+	"categories": [
+		"三奇",
+		"六仪",
+		"八门",
+		"九星",
+		"八神",
+		"九宫",
+		"天干",
+		"地支",
+		"遁局"
+	],
+	"dropdownConfigs": {
+		"三奇": [
+			{ "id": "1", "label": "乙", "value": "yi" },
+			{ "id": "2", "label": "丙", "value": "bing" },
+			{ "id": "3", "label": "丁", "value": "ding" }
+		],
+		"六仪": [
+			{ "id": "1", "label": "戊", "value": "wu" },
+			{ "id": "2", "label": "己", "value": "ji" },
+			{ "id": "3", "label": "庚", "value": "geng" },
+			{ "id": "4", "label": "辛", "value": "xin" },
+			{ "id": "5", "label": "壬", "value": "ren" },
+			{ "id": "6", "label": "癸", "value": "gui" }
+		],
+		"八门": [
+			{ "id": "1", "label": "休", "value": "xiu" },
+			{ "id": "2", "label": "生", "value": "sheng" },
+			{ "id": "3", "label": "伤", "value": "shang" },
+			{ "id": "4", "label": "杜", "value": "du" },
+			{ "id": "5", "label": "景", "value": "jing" },
+			{ "id": "6", "label": "死", "value": "si" },
+			{ "id": "7", "label": "惊", "value": "jing2" },
+			{ "id": "8", "label": "开", "value": "kai" }
+		],
+		"九星": [
+			{ "id": "1", "label": "天蓬", "value": "tianpeng" },
+			{ "id": "2", "label": "天任", "value": "tianren" },
+			{ "id": "3", "label": "天冲", "value": "tianchong" },
+			{ "id": "4", "label": "天辅", "value": "tianfu" },
+			{ "id": "5", "label": "天英", "value": "tianying" },
+			{ "id": "6", "label": "天芮", "value": "tianrui" },
+			{ "id": "7", "label": "天柱", "value": "tianzhu" },
+			{ "id": "8", "label": "天心", "value": "tianxin" },
+			{ "id": "9", "label": "天禽", "value": "tianqin" }
+		],
+		"八神": [
+			{ "id": "1", "label": "值符", "value": "zhifu" },
+			{ "id": "2", "label": "腾蛇", "value": "tengshe" },
+			{ "id": "3", "label": "太阴", "value": "taiyin" },
+			{ "id": "4", "label": "六合", "value": "liuhe" },
+			{ "id": "5", "label": "白虎", "value": "baihu" },
+			{ "id": "6", "label": "玄武", "value": "xuanwu" },
+			{ "id": "7", "label": "九地", "value": "jiudi" },
+			{ "id": "8", "label": "九天", "value": "jiutian" }
+		],
+		"九宫": [
+			{ "id": "1", "label": "一白坎", "value": "kan" },
+			{ "id": "2", "label": "二黑坤", "value": "kun" },
+			{ "id": "3", "label": "三碧震", "value": "zhen" },
+			{ "id": "4", "label": "四绿巽", "value": "xun" },
+			{ "id": "5", "label": "五黄中", "value": "zhong" },
+			{ "id": "6", "label": "六白乾", "value": "qian" },
+			{ "id": "7", "label": "七赤兑", "value": "dui" },
+			{ "id": "8", "label": "八白艮", "value": "gen" },
+			{ "id": "9", "label": "九紫离", "value": "li" }
+		],
+		"天干": [
+			{ "id": "1", "label": "甲", "value": "jia" },
+			{ "id": "2", "label": "乙", "value": "yi" },
+			{ "id": "3", "label": "丙", "value": "bing" },
+			{ "id": "4", "label": "丁", "value": "ding" },
+			{ "id": "5", "label": "戊", "value": "wu" },
+			{ "id": "6", "label": "己", "value": "ji" },
+			{ "id": "7", "label": "庚", "value": "geng" },
+			{ "id": "8", "label": "辛", "value": "xin" },
+			{ "id": "9", "label": "壬", "value": "ren" },
+			{ "id": "10", "label": "癸", "value": "gui" }
+		],
+		"地支": [
+			{ "id": "1", "label": "子", "value": "zi" },
+			{ "id": "2", "label": "丑", "value": "chou" },
+			{ "id": "3", "label": "寅", "value": "yin" },
+			{ "id": "4", "label": "卯", "value": "mao" },
+			{ "id": "5", "label": "辰", "value": "chen" },
+			{ "id": "6", "label": "巳", "value": "si" },
+			{ "id": "7", "label": "午", "value": "wu" },
+			{ "id": "8", "label": "未", "value": "wei" },
+			{ "id": "9", "label": "申", "value": "shen" },
+			{ "id": "10", "label": "酉", "value": "you" },
+			{ "id": "11", "label": "戌", "value": "xu" },
+			{ "id": "12", "label": "亥", "value": "hai" }
+		],
+		"遁局": [
+			{ "id": "1", "label": "阳遁一局", "value": "yang1" },
+			{ "id": "2", "label": "阳遁二局", "value": "yang2" },
+			{ "id": "3", "label": "阳遁三局", "value": "yang3" },
+			{ "id": "4", "label": "阳遁四局", "value": "yang4" },
+			{ "id": "5", "label": "阳遁五局", "value": "yang5" },
+			{ "id": "6", "label": "阳遁六局", "value": "yang6" },
+			{ "id": "7", "label": "阳遁七局", "value": "yang7" },
+			{ "id": "8", "label": "阳遁八局", "value": "yang8" },
+			{ "id": "9", "label": "阳遁九局", "value": "yang9" },
+			{ "id": "10", "label": "阴遁一局", "value": "yin1" },
+			{ "id": "11", "label": "阴遁二局", "value": "yin2" },
+			{ "id": "12", "label": "阴遁三局", "value": "yin3" },
+			{ "id": "13", "label": "阴遁四局", "value": "yin4" },
+			{ "id": "14", "label": "阴遁五局", "value": "yin5" },
+			{ "id": "15", "label": "阴遁六局", "value": "yin6" },
+			{ "id": "16", "label": "阴遁七局", "value": "yin7" },
+			{ "id": "17", "label": "阴遁八局", "value": "yin8" },
+			{ "id": "18", "label": "阴遁九局", "value": "yin9" }
+		]
+	}
 }

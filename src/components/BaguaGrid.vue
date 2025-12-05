@@ -15,6 +15,31 @@
 				>
 					输出
 				</button>
+				<select
+					v-model="selectedDunJu"
+					class="select"
+				>
+					<option
+						v-for="o in dunJuOptions"
+						:key="o.id"
+						:value="o.value"
+					>
+						{{ o.label }}
+					</option>
+				</select>
+				<label class="label">
+					<input
+						type="checkbox"
+						v-model="enableJieQi"
+					/>
+					节气模式
+				</label>
+				<button
+					class="btn"
+					@click="applyQimenLayout"
+				>
+					奇门排盘
+				</button>
 			</div>
 			<div class="right">
 				<select
@@ -22,11 +47,11 @@
 					class="select"
 				>
 					<option value="">未分类</option>
-					<option value="jin">金</option>
-					<option value="mu">木</option>
-					<option value="shui">水</option>
-					<option value="huo">火</option>
-					<option value="tu">土</option>
+					<option value="金">金</option>
+					<option value="木">木</option>
+					<option value="水">水</option>
+					<option value="火">火</option>
+					<option value="土">土</option>
 				</select>
 				<input
 					v-model="formName"
@@ -40,12 +65,13 @@
 		<div class="grid-box">
 			<div class="grid">
 				<BaguaCell
-					v-for="cell in cells"
+					v-for="(cell, idx) in cells"
 					:key="cell.cellId"
 					:cell-id="cell.cellId"
 					:dropdowns="cell.dropdowns"
 					:selected-values="selectedValues"
 					:disabled-values="disabled"
+					:overlay-label="tianOverlayLabels[idx]"
 					@update="
 						(index, value, label) => onUpdate(cell.cellId, index, value, label)
 					"
@@ -59,6 +85,8 @@
 	import { ref, computed, onMounted } from "vue"
 	import BaguaCell from "./BaguaCell.vue"
 	import { useGridState } from "@/composables/useGridState"
+	import { ConfigManager } from "@/utils/config-loader"
+	import { computeLayout, parseDunJu, inferDunByJieQi } from "@/utils/qimen"
 
 	const props = defineProps<{
 		config?: any
@@ -72,6 +100,11 @@
 
 	const formName = ref<string>("")
 	const formCategory = ref<string>("")
+
+	const dunJuOptions = ref<any[]>([])
+	const selectedDunJu = ref<string>("")
+	const enableJieQi = ref<boolean>(false)
+	const tianOverlayLabels = ref<string[]>(Array(9).fill(""))
 
 	const {
 		cells,
@@ -91,6 +124,8 @@
 
 	onMounted(() => {
 		initializeGrid()
+		loadDunJu()
+		tianOverlayLabels.value = Array(9).fill("")
 	})
 
 	const handleSave = (): void => {
@@ -126,10 +161,58 @@
 		})
 	}
 
+	const loadDunJu = async () => {
+		try {
+			const opts = await ConfigManager.getOptionsForCategory("遁局")
+			dunJuOptions.value = opts
+			selectedDunJu.value = opts[0]?.value || "yang1"
+		} catch (e) {}
+	}
+
+	const applyQimenLayout = async () => {
+		const base = parseDunJu(selectedDunJu.value || "yang1")
+		const dun = enableJieQi.value ? inferDunByJieQi(new Date(), base) : base
+		const layout = computeLayout(new Date(), dun)
+
+		const isSanQi = (v: string) => v === "yi" || v === "bing" || v === "ding"
+
+		let ganMap = new Map<string, string>()
+		try {
+			const gan = await ConfigManager.getOptionsForCategory("天干")
+			gan.forEach((o: any) => ganMap.set(o.value, o.label))
+		} catch {}
+
+		cells.value.forEach((cell, idx) => {
+			const diVal = layout.diPan[idx]
+			if (isSanQi(diVal)) {
+				updateDropdownValue(cell.cellId, 0, diVal, null)
+				updateDropdownValue(cell.cellId, 1, null, null)
+			} else {
+				updateDropdownValue(cell.cellId, 1, diVal, null)
+				updateDropdownValue(cell.cellId, 0, null, null)
+			}
+
+			const menVal = layout.renPan[idx]
+			updateDropdownValue(cell.cellId, 2, menVal, null)
+
+			const starVal = layout.jiuXing[idx]
+			updateDropdownValue(cell.cellId, 3, starVal, null)
+
+			tianOverlayLabels.value[idx] =
+				ganMap.get(layout.tianPan[idx]) || layout.tianPan[idx]
+		})
+
+		emit("state-change", {
+			selectedValues: selectedValues.value,
+			count: selectedValues.value.length,
+		})
+	}
+
 	defineExpose({
 		deserializeGridState,
 		printGridStateToConsole,
 		loadState: deserializeGridState,
+		tianOverlayLabels,
 	})
 </script>
 

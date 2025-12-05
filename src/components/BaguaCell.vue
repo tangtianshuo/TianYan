@@ -2,6 +2,11 @@
 	<div class="bagua-cell ink-border ink-shadow">
 		<div class="cell-header">
 			<span class="cell-id">{{ cellId }}</span>
+			<span
+				v-if="props.overlayLabel"
+				class="cell-tag"
+				>天盘：{{ props.overlayLabel }}</span
+			>
 		</div>
 
 		<div class="cell-content">
@@ -15,7 +20,7 @@
 					:id="dropdown.id"
 					:model-value="dropdown.selectedValue"
 					:options="getFilteredOptions(index)"
-					placeholder="选择"
+					placeholder="空"
 					@update:model-value="(value) => handleSelect(index, value)"
 				/>
 			</div>
@@ -34,6 +39,7 @@
 		dropdowns: DropdownState[]
 		selectedValues: string[]
 		disabledValues: string[]
+		overlayLabel?: string
 	}
 
 	interface Emits {
@@ -122,6 +128,16 @@
 		color: var(--color-muted-foreground);
 		text-transform: uppercase;
 		letter-spacing: 0.5px;
+	}
+
+	.cell-tag {
+		margin-left: 0.5rem;
+		padding: 0.125rem 0.375rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-sm);
+		font-size: 0.75rem;
+		color: var(--color-foreground);
+		background-color: var(--color-card);
 	}
 
 	.cell-content {

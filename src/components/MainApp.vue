@@ -10,7 +10,7 @@
 			<div class="app-main">
 				<div class="main-header">
 					<div class="header-info">
-						<h1 class="app-title">八卦九宫格选择器</h1>
+						<h1 class="app-title">奇门遁甲</h1>
 						<!-- <p class="app-subtitle">中式水墨风格配置工具</p> -->
 					</div>
 
@@ -118,11 +118,11 @@
 	}
 
 	// 打开控制台（开发用）
-	const openConsole = () => {
-		if (gridRef.value) {
-			gridRef.value.printToConsole()
-		}
-	}
+	// const openConsole = () => {
+	// 	if (gridRef.value) {
+	// 		gridRef.value.printToConsole()
+	// 	}
+	// }
 
 	const formatTime = (timestamp: number): string => {
 		const date = new Date(timestamp)
