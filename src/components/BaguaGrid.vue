@@ -2,19 +2,20 @@
 	<div class="wrapper">
 		<div class="toolbar">
 			<div class="left">
-				<span class="label">操作：</span>
+				<span class="label">{{ t("grid.operation") }}：</span>
 				<button
 					class="btn"
 					@click="handleSave"
 				>
-					保存
+					{{ t("grid.save") }}
 				</button>
-				<button
+				<!-- <button
+					v-if="false"
 					class="btn"
 					@click="handlePrint"
 				>
-					输出
-				</button>
+					{{ t('grid.export') }}
+				</button> -->
 				<select
 					v-model="selectedDunJu"
 					class="select"
@@ -35,18 +36,68 @@
 					节气模式
 				</label>
 				<button
+					v-if="false"
 					class="btn"
 					@click="applyQimenLayout"
 				>
 					奇门排盘
 				</button>
+				<div class="time-controls">
+					<span class="label">时间：</span>
+					<label class="label">
+						<input
+							type="radio"
+							value="solar"
+							v-model="calendarMode"
+						/>阳历
+					</label>
+					<label class="label">
+						<input
+							type="radio"
+							value="lunar"
+							v-model="calendarMode"
+						/>阴历
+					</label>
+					<label class="label">
+						<input
+							type="radio"
+							value="jieqi"
+							v-model="calendarMode"
+						/>节气
+					</label>
+					<input
+						v-if="calendarMode !== 'jieqi'"
+						type="date"
+						v-model="dateStr"
+						class="input"
+					/>
+					<input
+						v-if="calendarMode !== 'jieqi'"
+						type="time"
+						v-model="timeStr"
+						class="input"
+					/>
+					<select
+						v-if="calendarMode === 'jieqi'"
+						v-model="selectedJieQi"
+						class="select"
+					>
+						<option
+							v-for="j in jieQiOptions"
+							:key="j"
+							:value="j"
+						>
+							{{ j }}
+						</option>
+					</select>
+				</div>
 			</div>
 			<div class="right">
 				<select
 					v-model="formCategory"
 					class="select"
 				>
-					<option value="">未分类</option>
+					<option value="">{{ t("grid.uncategorized") }}</option>
 					<option value="金">金</option>
 					<option value="木">木</option>
 					<option value="水">水</option>
@@ -57,7 +108,7 @@
 					v-model="formName"
 					type="text"
 					class="input"
-					placeholder="配置名称"
+					:placeholder="t('grid.configName')"
 				/>
 			</div>
 		</div>
@@ -71,7 +122,7 @@
 					:dropdowns="cell.dropdowns"
 					:selected-values="selectedValues"
 					:disabled-values="disabled"
-					:overlay-label="tianOverlayLabels[idx]"
+					:overlay-labels="showOverlay ? overlayLabels[idx] : undefined"
 					@update="
 						(index, value, label) => onUpdate(cell.cellId, index, value, label)
 					"
@@ -86,12 +137,23 @@
 	import BaguaCell from "./BaguaCell.vue"
 	import { useGridState } from "@/composables/useGridState"
 	import { ConfigManager } from "@/utils/config-loader"
-	import { computeLayout, parseDunJu, inferDunByJieQi } from "@/utils/qimen"
+	import { useI18n } from "@/utils/i18n"
+	import { useToast } from "@/composables/useToast"
+	import type { AppConfig } from "@/types"
+	import {
+		computeLayout,
+		parseDunJu,
+		inferDunByJieQi,
+		inferDunByJieQiName,
+	} from "@/utils/qimen"
 
 	const props = defineProps<{
-		config?: any
+		config?: AppConfig
 		mutualExclusiveValues?: Set<string>
 	}>()
+
+	const { t } = useI18n()
+	const { showToast } = useToast()
 
 	const emit = defineEmits<{
 		"state-change": [data: { selectedValues: string[]; count: number }]
@@ -104,7 +166,40 @@
 	const dunJuOptions = ref<any[]>([])
 	const selectedDunJu = ref<string>("")
 	const enableJieQi = ref<boolean>(false)
-	const tianOverlayLabels = ref<string[]>(Array(9).fill(""))
+	const calendarMode = ref<"solar" | "lunar" | "jieqi">("solar")
+	const dateStr = ref<string>(new Date().toISOString().slice(0, 10))
+	const timeStr = ref<string>(new Date().toTimeString().slice(0, 5))
+	const selectedJieQi = ref<string>("立春")
+	const jieQiOptions = [
+		"立春",
+		"雨水",
+		"惊蛰",
+		"春分",
+		"清明",
+		"谷雨",
+		"立夏",
+		"小满",
+		"芒种",
+		"夏至",
+		"小暑",
+		"大暑",
+		"立秋",
+		"处暑",
+		"白露",
+		"秋分",
+		"寒露",
+		"霜降",
+		"立冬",
+		"小雪",
+		"大雪",
+		"冬至",
+		"小寒",
+		"大寒",
+	]
+	const showOverlay = ref<boolean>(false)
+	const overlayLabels = ref<
+		Array<{ di?: string; tian?: string; ren?: string; shen?: string }>
+	>(Array(9).fill({}))
 
 	const {
 		cells,
@@ -118,6 +213,13 @@
 
 	const selectedValues = computed(() => getAllSelectedValues())
 
+	const selectedDate = computed(() => {
+		const [h, m] = timeStr.value.split(":").map((x) => parseInt(x || "0", 10))
+		const d = new Date(`${dateStr.value}T00:00:00`)
+		d.setHours(h || 0, m || 0, 0, 0)
+		return d
+	})
+
 	const disabled = computed(() => {
 		return Array.from(props.mutualExclusiveValues || new Set<string>())
 	})
@@ -125,28 +227,23 @@
 	onMounted(() => {
 		initializeGrid()
 		loadDunJu()
-		tianOverlayLabels.value = Array(9).fill("")
 	})
 
 	const handleSave = (): void => {
-		if (!formCategory.value.trim()) {
-			alert("请选择分类")
-			return
-		}
 		if (!formName.value.trim()) {
-			alert("请输入配置名称")
+			showToast(t("grid.enterName"), "error")
 			return
 		}
-		saveGridState(formName.value, formCategory.value || "未分类")
+		saveGridState(formName.value, formCategory.value || t("grid.uncategorized"))
 		emit("save")
-		alert("保存成功")
+		showToast(t("grid.saveSuccess"), "success")
 		formName.value = ""
 		formCategory.value = ""
 	}
 
-	const handlePrint = (): void => {
-		printGridStateToConsole()
-	}
+	// const handlePrint = (): void => {
+	// 	printGridStateToConsole()
+	// }
 
 	const onUpdate = (
 		cellId: string,
@@ -159,6 +256,7 @@
 			selectedValues: selectedValues.value,
 			count: selectedValues.value.length,
 		})
+		refreshOverlay()
 	}
 
 	const loadDunJu = async () => {
@@ -169,17 +267,28 @@
 		} catch (e) {}
 	}
 
-	const applyQimenLayout = async () => {
+	const refreshOverlay = async () => {
 		const base = parseDunJu(selectedDunJu.value || "yang1")
-		const dun = enableJieQi.value ? inferDunByJieQi(new Date(), base) : base
-		const layout = computeLayout(new Date(), dun)
+		const dun =
+			calendarMode.value === "jieqi"
+				? inferDunByJieQiName(selectedJieQi.value, base)
+				: enableJieQi.value
+				? inferDunByJieQi(selectedDate.value, base)
+				: base
+		const layout = computeLayout(selectedDate.value, dun)
 
 		const isSanQi = (v: string) => v === "yi" || v === "bing" || v === "ding"
 
 		let ganMap = new Map<string, string>()
+		let menMap = new Map<string, string>()
+		let shenMap = new Map<string, string>()
 		try {
 			const gan = await ConfigManager.getOptionsForCategory("天干")
 			gan.forEach((o: any) => ganMap.set(o.value, o.label))
+			const men = await ConfigManager.getOptionsForCategory("八门")
+			men.forEach((o: any) => menMap.set(o.value, o.label))
+			const shen = await ConfigManager.getOptionsForCategory("八神")
+			shen.forEach((o: any) => shenMap.set(o.value, o.label))
 		} catch {}
 
 		cells.value.forEach((cell, idx) => {
@@ -197,22 +306,30 @@
 
 			const starVal = layout.jiuXing[idx]
 			updateDropdownValue(cell.cellId, 3, starVal, null)
-
-			tianOverlayLabels.value[idx] =
-				ganMap.get(layout.tianPan[idx]) || layout.tianPan[idx]
+			overlayLabels.value[idx] = {
+				di: ganMap.get(diVal) || diVal,
+				tian: ganMap.get(layout.tianPan[idx]) || layout.tianPan[idx],
+				ren: menMap.get(menVal) || menVal,
+				shen: shenMap.get(layout.baShen[idx]) || layout.baShen[idx],
+			}
 		})
 
 		emit("state-change", {
 			selectedValues: selectedValues.value,
 			count: selectedValues.value.length,
 		})
+		showOverlay.value = true
+	}
+
+	const applyQimenLayout = async () => {
+		await refreshOverlay()
 	}
 
 	defineExpose({
 		deserializeGridState,
 		printGridStateToConsole,
 		loadState: deserializeGridState,
-		tianOverlayLabels,
+		overlayLabels,
 	})
 </script>
 
@@ -241,6 +358,12 @@
 		gap: 0.75rem;
 		align-items: center;
 		flex-wrap: wrap;
+	}
+
+	.time-controls {
+		display: flex;
+		gap: 0.5rem;
+		align-items: center;
 	}
 
 	.label {

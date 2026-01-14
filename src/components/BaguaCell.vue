@@ -3,9 +3,24 @@
 		<div class="cell-header">
 			<span class="cell-id">{{ cellId }}</span>
 			<span
-				v-if="props.overlayLabel"
-				class="cell-tag"
-				>天盘：{{ props.overlayLabel }}</span
+				v-if="props.overlayLabels?.di"
+				class="cell-tag di"
+				>地盘：{{ props.overlayLabels?.di }}</span
+			>
+			<span
+				v-if="props.overlayLabels?.tian"
+				class="cell-tag tian"
+				>天盘：{{ props.overlayLabels?.tian }}</span
+			>
+			<span
+				v-if="props.overlayLabels?.ren"
+				class="cell-tag ren"
+				>人盘：{{ props.overlayLabels?.ren }}</span
+			>
+			<span
+				v-if="props.overlayLabels?.shen"
+				class="cell-tag shen"
+				>神盘：{{ props.overlayLabels?.shen }}</span
 			>
 		</div>
 
@@ -20,8 +35,17 @@
 					:id="dropdown.id"
 					:model-value="dropdown.selectedValue"
 					:options="getFilteredOptions(index)"
+					:grouped-options="groupedOptions"
 					placeholder="空"
 					@update:model-value="(value) => handleSelect(index, value)"
+					@blur="
+						emit(
+							'update',
+							index,
+							dropdown.selectedValue,
+							dropdown.selectedLabel || null
+						)
+					"
 				/>
 			</div>
 		</div>
@@ -31,7 +55,7 @@
 <script setup lang="ts">
 	import { ref, onMounted } from "vue"
 	import BaguaSelect from "./BaguaSelect.vue"
-	import type { SelectOption, DropdownState } from "@/types"
+	import type { SelectOption, DropdownState, AppConfig } from "@/types"
 	import { ConfigManager } from "@/utils/config-loader"
 
 	interface Props {
@@ -39,7 +63,7 @@
 		dropdowns: DropdownState[]
 		selectedValues: string[]
 		disabledValues: string[]
-		overlayLabel?: string
+		overlayLabels?: { di?: string; tian?: string; ren?: string; shen?: string }
 	}
 
 	interface Emits {
@@ -55,7 +79,8 @@
 	const emit = defineEmits<Emits>()
 
 	const allOptions = ref<SelectOption[][]>([])
-	const config = ref<any>(null)
+	const config = ref<AppConfig | null>(null)
+	const groupedOptions = ref<Record<string, SelectOption[]>>({})
 
 	const getFilteredOptions = (index: number): SelectOption[] => {
 		const options = allOptions.value[index] || []
@@ -69,7 +94,17 @@
 	}
 
 	const handleSelect = async (index: number, value: string | null) => {
-		const option = allOptions.value[index]?.find((o) => o.value === value)
+		// 优先从当前下拉框的 options 中查找
+		let option = allOptions.value[index]?.find((o) => o.value === value)
+
+		// 如果没找到，尝试从 groupedOptions 中查找
+		if (!option && groupedOptions.value) {
+			for (const key in groupedOptions.value) {
+				option = groupedOptions.value[key].find((o) => o.value === value)
+				if (option) break
+			}
+		}
+
 		const label = option?.label || null
 		emit("update", index, value, label)
 	}
@@ -77,18 +112,18 @@
 	const loadConfig = async () => {
 		try {
 			config.value = await ConfigManager.loadConfig()
-			const categories = config.value?.categories || [
-				"天干",
-				"地支",
-				"八卦",
-				"五行",
-			]
-
-			// 加载每个分类的选项
-			for (const category of categories) {
-				const options = await ConfigManager.getOptionsForCategory(category)
-				allOptions.value.push(options)
+			const jiuGong = await ConfigManager.getOptionsForCategory("九宫")
+			const baShen = await ConfigManager.getOptionsForCategory("八神")
+			const baMen = await ConfigManager.getOptionsForCategory("八门")
+			const liuYi = await ConfigManager.getOptionsForCategory("六仪")
+			const sanQi = await ConfigManager.getOptionsForCategory("三奇")
+			groupedOptions.value = {
+				九宫: jiuGong,
+				八神: baShen,
+				八门: baMen,
+				六仪三奇: [...liuYi, ...sanQi],
 			}
+			allOptions.value = [baMen, liuYi, sanQi, jiuGong]
 		} catch (error) {
 			console.error("[BaguaCell] Error loading config:", error)
 		}
@@ -144,7 +179,8 @@
 		flex: 1;
 		padding: 0.75rem;
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: 1fr;
+		grid-template-rows: repeat(4, auto);
 		gap: 0.5rem;
 		align-content: start;
 	}
@@ -153,6 +189,27 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
+	}
+
+	.bagua-cell {
+		aspect-ratio: 1 / 1;
+	}
+
+	.cell-tag.di {
+		color: #1e3a8a;
+		border-color: #1e3a8a;
+	}
+	.cell-tag.tian {
+		color: #b91c1c;
+		border-color: #b91c1c;
+	}
+	.cell-tag.ren {
+		color: #166534;
+		border-color: #166534;
+	}
+	.cell-tag.shen {
+		color: #6b21a8;
+		border-color: #6b21a8;
 	}
 
 	@media (max-width: 768px) {

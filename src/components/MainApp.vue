@@ -1,5 +1,6 @@
 <template>
 	<div class="main-app">
+		<ToastMessage ref="toastRef" />
 		<div class="app-container">
 			<!-- 左侧树形列表 -->
 			<div class="app-sidebar">
@@ -10,25 +11,25 @@
 			<div class="app-main">
 				<div class="main-header">
 					<div class="header-info">
-						<h1 class="app-title">奇门遁甲</h1>
-						<!-- <p class="app-subtitle">中式水墨风格配置工具</p> -->
+						<h1 class="app-title">{{ t("app.title") }}</h1>
+						<p class="app-subtitle">{{ t("app.subtitle") }}</p>
 					</div>
 
 					<div class="header-actions">
+						<select
+							v-model="locale"
+							class="lang-select"
+						>
+							<option value="zh-CN">中文</option>
+							<option value="en-US">English</option>
+						</select>
 						<button
 							class="header-btn refresh-btn"
 							@click="refreshConfig"
-							title="刷新配置"
+							:title="t('app.refresh')"
 						>
-							⟳ 刷新配置
+							⟳ {{ t("app.refresh") }}
 						</button>
-						<!-- <button
-							class="header-btn console-btn"
-							@click="openConsole"
-							title="打开控制台"
-						>
-							{ } 控制台
-						</button> -->
 					</div>
 				</div>
 
@@ -38,12 +39,12 @@
 						v-show="isLoading"
 						class="loading-state"
 					>
-						加载中...
+						{{ t("app.loading") }}
 					</div>
 					<BaguaGrid
 						v-show="!isLoading"
 						ref="gridRef"
-						:config="config"
+						:config="config || undefined"
 						:mutual-exclusive-values="mutualExclusiveValues"
 						@state-change="handleStateChange"
 						@save="handleSaveConfig"
@@ -53,14 +54,14 @@
 				<!-- 状态栏 -->
 				<div class="main-footer">
 					<div class="footer-stats">
-						<span>选中项: {{ selectedCount }}</span>
+						<span>{{ t("app.selected") }}: {{ selectedCount }}</span>
 						<span>·</span>
-						<span>总项数: {{ totalItems }}</span>
+						<span>{{ t("app.total") }}: {{ totalItems }}</span>
 						<span
 							v-if="lastSaveTime"
 							class="save-time"
 						>
-							· 最后保存: {{ formatTime(lastSaveTime) }}
+							· {{ t("app.lastSaved") }}: {{ formatTime(lastSaveTime) }}
 						</span>
 					</div>
 				</div>
@@ -73,11 +74,17 @@
 	import { ref, onMounted } from "vue"
 	import SidebarTree from "./SidebarTree.vue"
 	import BaguaGrid from "./BaguaGrid.vue"
+	import ToastMessage from "./ToastMessage.vue"
 	import { ConfigManager } from "@/utils/config-loader"
-	import type { SavedRecord } from "@/types"
+	import type { SavedRecord, AppConfig } from "@/types"
+	import { useI18n } from "@/utils/i18n"
+	import { useToast } from "@/composables/useToast"
+
+	const { t, locale } = useI18n()
+	const { toastRef } = useToast()
 
 	const gridRef = ref()
-	const config = ref<any>(null)
+	const config = ref<AppConfig | null>(null)
 	const isLoading = ref(true)
 	const selectedCount = ref(0)
 	const totalItems = ref(36)
@@ -201,6 +208,29 @@
 		gap: 0.75rem;
 		flex-wrap: wrap;
 		justify-content: flex-end;
+	}
+
+	.lang-select {
+		padding: 0.625rem 1rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		background-color: transparent;
+		color: var(--color-foreground);
+		cursor: pointer;
+		font-size: 0.875rem;
+		font-weight: 500;
+		transition: all 0.2s ease;
+		appearance: none;
+		-webkit-appearance: none;
+	}
+	.lang-select:hover {
+		border-color: var(--color-primary);
+		background-color: var(--color-primary);
+		color: var(--color-primary-foreground);
+	}
+	.lang-select option {
+		background-color: var(--color-card);
+		color: var(--color-foreground);
 	}
 
 	.header-btn {

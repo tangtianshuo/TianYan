@@ -4,13 +4,13 @@
 
 :root {
   /* 主色调 - 黑白灰 */
-  --color-background: #fafaf8;
+  --color-background: #efede8;
   --color-foreground: #1a1a1a;
-  --color-card: #ffffff;
-  --color-sidebar: #f5f3f0;
-  --color-border: #e8e6e1;
-  --color-muted: #f0ede9;
-  --color-muted-foreground: #666666;
+  --color-card: #f2f0eb;
+  --color-sidebar: #ece9e4;
+  --color-border: #d2cfc8;
+  --color-muted: #e6e3de;
+  --color-muted-foreground: #444444;
   --color-input: #ffffff;
 
   /* 主色 - 深青 */
@@ -59,6 +59,7 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   line-height: 1.6;
+  font-size: 1.2rem;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -197,7 +198,7 @@ textarea:focus {
   }
 
   body {
-    font-size: 14px;
+    font-size: 16.8px;
   }
 }
 
@@ -209,7 +210,7 @@ textarea:focus {
   }
 
   body {
-    font-size: 13px;
+    font-size: 15.6px;
   }
 }
 

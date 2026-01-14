@@ -2,22 +2,10 @@
  * 配置文件热加载管理
  */
 
-// 定义本地类型以避免外部依赖
-interface SelectOption {
-	id: string
-	label: string
-	value: string
-	disabled?: boolean
-}
-
-interface ConfigFile {
-	version: string
-	categories: string[]
-	dropdownConfigs: Record<string, SelectOption[]>
-}
+import type { AppConfig, SelectOption } from "@/types"
 
 const CONFIG_URL = "/config/baGua.json"
-let cachedConfig: ConfigFile | null = null
+let cachedConfig: AppConfig | null = null
 let configFetchTime = 0
 const CONFIG_CACHE_TIME = 5000 // 5秒缓存
 
@@ -27,7 +15,7 @@ export class ConfigManager {
 	/**
 	 * 加载配置文件
 	 */
-	static async loadConfig(forceRefresh = false): Promise<ConfigFile> {
+	static async loadConfig(forceRefresh = false): Promise<AppConfig> {
 		const now = Date.now()
 
 		if (
@@ -51,7 +39,7 @@ export class ConfigManager {
 			configFetchTime = now
 
 			this.notifyListeners()
-			return cachedConfig as ConfigFile
+			return cachedConfig as AppConfig
 		} catch (error) {
 			console.error("[ConfigManager] Error loading config:", error)
 			// 返回默认配置
@@ -95,14 +83,14 @@ export class ConfigManager {
 	/**
 	 * 强制刷新配置
 	 */
-	static async refreshConfig(): Promise<ConfigFile> {
+	static async refreshConfig(): Promise<AppConfig> {
 		return this.loadConfig(true)
 	}
 
 	/**
 	 * 获取默认配置
 	 */
-	private static getDefaultConfig(): ConfigFile {
+	private static getDefaultConfig(): AppConfig {
 		return {
 			version: "1.0.0",
 			categories: ["天干", "地支", "八卦", "五行"],
