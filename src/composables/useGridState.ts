@@ -22,6 +22,7 @@ export function useGridState() {
 	const cells = ref<CellState[]>([])
 	const selectedValuesMap = ref<Map<string, string>>(new Map())
 	const qimenMeta = ref<GridState["qimenMeta"]>()
+	const currentQimenResult = ref<any>(null) // 临时存储排盘结果，用于导出
 
 	// 初始化网格
 	const initializeGrid = () => {
@@ -56,6 +57,7 @@ export function useGridState() {
 		shiZhi: string
 	) => {
 		const result = runQiMen(style, dunType, juNum, shiGan, shiZhi)
+		currentQimenResult.value = result // 存储结果
 		const gridData = getGridData(result)
 
 		// 更新 Grid Cells
@@ -253,5 +255,6 @@ export function useGridState() {
 		gridState,
 		applyQiMenLayout,
 		qimenMeta,
+		currentQimenResult, // 暴露当前的排盘结果对象
 	}
 }

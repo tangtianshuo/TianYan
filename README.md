@@ -1,7 +1,231 @@
-# Tauri + Vue + TypeScript
+# 天衍 (TianYan) - 专业奇门遁甲排盘模拟系统
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+## 项目简介
 
-## Recommended IDE Setup
+**天衍** 是一个基于 **Tauri + Vue 3 + TypeScript** 构建的现代化奇门遁甲排盘与模拟系统。它旨在为易学研究者提供一个专业、精准且交互友好的数字化排盘工具。系统支持**转盘奇门**与**飞盘奇门**两种主流流派，具备完整的起局、排盘、编辑与管理功能。
 
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## 核心功能特性
+
+- **双流派支持**：
+  - **转盘奇门**：遵循经典转盘排布规则（八宫旋转，中 5 寄坤 2）。
+  - **飞盘奇门**：实现九宫顺飞逻辑（星/门/神顺飞，中 5 独立）。
+- **专业排盘引擎**：
+  - 自动计算旬首、值符、值使、空亡。
+  - 支持阳遁/阴遁，1-9 局灵活定局。
+  - 精确的时干支排盘算法。
+- **可视化增强**：
+  - **五行着色**：九星、八门根据五行属性（金木水火土）自动显示对应颜色（如离火为红、坎水为黑），辅助直观分析。
+  - **水墨风格 UI**：结合现代简约与传统水墨韵味的设计。
+- **交互式盘面**：
+  - **手动编辑**：支持点击宫位直接修改神/星/门/干，模拟手工调整。
+  - **智能互斥**：防止同一元素在盘面中重复出现（可配置）。
+- **数据管理**：
+  - **保存/读取**：将排盘结果序列化保存到本地，支持分类管理。
+  - **响应式设计**：完美适配桌面端与移动端操作。
+
+## 技术栈
+
+- **核心框架**: [Vue 3](https://vuejs.org/) (Composition API)
+- **构建工具**: [Vite](https://vitejs.dev/)
+- **语言**: [TypeScript](https://www.typescriptlang.org/)
+- **桌面端容器**: [Tauri](https://tauri.app/)
+- **样式**: CSS Variables (支持暗色模式/水墨风格), Tailwind 思想 (自定义工具类)
+- **状态管理**: Vue Reactivity System (`ref`, `reactive`, `computed`)
+
+## 项目结构
+
+```
+src/
+├── components/          # UI 组件层
+│   ├── MainApp.vue      # 应用主入口，负责整体布局 (侧边栏 + 主内容区)
+│   ├── BaguaGrid.vue    # 核心组件：九宫格排盘容器，包含排盘控制栏
+│   ├── BaguaCell.vue    # 单元组件：九宫格中的单宫，负责显示神/星/门/干
+│   ├── BaguaSelect.vue  # 基础组件：自定义下拉选择器，支持分组与搜索
+│   ├── SidebarTree.vue  # 侧边栏：历史记录管理 (树形结构)
+│   └── ToastMessage.vue # 全局消息提示组件
+│
+├── composables/         # 组合式函数 (Logic Hooks)
+│   ├── useGridState.ts  # 核心状态管理：管理 Grid 数据、排盘逻辑集成
+│   ├── useToast.ts      # 消息提示逻辑
+│   └── useRecordManager.ts # 记录管理逻辑 (CRUD)
+│
+├── utils/               # 工具库 & 核心算法
+│   ├── qimen.ts         # 【核心】奇门遁甲排盘引擎 (转盘/飞盘算法实现)
+│   ├── config-loader.ts # 配置加载器 (读取本地 JSON 配置)
+│   ├── storage.ts       # 本地存储封装 (LocalStorage/File)
+│   └── i18n.ts          # 国际化模块
+│
+├── types/               # TypeScript 类型定义
+│   └── index.ts         # 全局类型 (GridState, QiMenResult, PanStyle 等)
+│
+├── styles/              # 全局样式
+│   ├── main.css         # 重置与基础样式
+│   └── variables.css    # CSS 变量 (主题色、水墨风配色)
+│
+├── App.vue              # 根组件
+└── main.ts              # 应用入口
+```
+
+## 核心逻辑与调用流程
+
+### 1. 系统初始化
+
+- **入口**: `main.ts` 挂载 `App.vue`。
+- **布局**: `App.vue` 渲染 `MainApp.vue`。
+- **数据加载**: `MainApp` 初始化时调用 `ConfigManager` 加载基础配置（如下拉选项数据），并初始化 `useI18n`。
+
+### 2. 排盘逻辑 (Core Engine)
+
+当用户点击“起局”按钮时，系统执行以下流程：
+
+1.  **用户交互**: 在 `BaguaGrid.vue` 的工具栏中选择排盘参数（流派、遁局、局数、时辰）。
+2.  **触发排盘**: 点击按钮触发 `handleQiJu`。
+3.  **状态更新**: 调用 `useGridState.ts` 中的 `applyQiMenLayout` 方法。
+4.  **算法计算**:
+    - `applyQiMenLayout` 调用 `utils/qimen.ts` 的 `runQiMen` 函数。
+    - **`runQiMen`** 执行核心算法：
+      - **排地盘**: 根据遁局（阴/阳）和局数，排布三奇六仪。
+      - **定局信**: 计算旬首、值符、值使、空亡。
+      - **排天盘**:
+        - **转盘**: 依据值符随时干的原则，进行八宫旋转排布。
+        - **飞盘**: 依据顺飞九宫的原则排布。
+      - **排九星/八门**:
+        - **转盘**: 依据时辰与值符/值使位置，按固定路径旋转。
+        - **飞盘**: 依据数字顺序顺飞九宫（处理中 5 宫寄宫逻辑）。
+      - **排八神**: 转盘八神分阴阳顺逆；飞盘九神顺飞。
+5.  **数据映射**: 计算结果 `QiMenResult` 被映射回 Grid 的 `CellState` 中。
+6.  **视图渲染**:
+    - `BaguaGrid` 响应式更新 `cells`。
+    - `BaguaCell` 接收新的 `qimen` 数据，渲染叠加层 (Overlay)。
+    - **可视化增强**: `BaguaCell` 调用 `getCustomClass`，根据 `utils/qimen.ts` 中的五行定义 (`WUXING`)，为星/门添加对应的颜色样式（如离宫火为红）。
+
+### 3. 数据编辑与保存
+
+- **编辑**: 用户可直接点击九宫格内的下拉框 (`BaguaSelect`) 手动调整盘面内容。
+- **互斥逻辑**: `useGridState` 维护 `selectedValuesMap`，确保同一元素在盘面中不重复出现（可选配置）。
+- **保存**: 点击“保存”后，`MainApp` 通过 `useRecordManager` 将当前 `GridState` 序列化并存储到本地。
+
+## 关键功能模块细节
+
+### 奇门引擎 (`src/utils/qimen.ts`)
+
+这是项目的“大脑”。
+
+- **`runQiMen`**: 主入口函数。
+- **`layoutDiPan`**: 地盘排布。
+- **`layoutTianPan`**: 天盘排布 (支持 `zhuan`/`fei` 两种模式)。
+- **`layoutBaMen` / `layoutJiuXing`**: 星门排布，通过查找原始宫位与目标宫位的偏移量 (`offset`) 来计算最终位置。
+- **`WUXING`**: 定义五行属性，用于 UI 染色。
+
+### 网格状态 (`src/composables/useGridState.ts`)
+
+这是项目的“内存”。
+
+- **`cells`**: 响应式数组，存储 9 个宫位的状态。
+- **`qimenMeta`**: 存储当前局的元数据（局数、旬首等），用于保存和恢复。
+- **`serializeGridState` / `deserializeGridState`**: 负责状态持久化。
+
+### 视觉组件 (`src/components/BaguaCell.vue`)
+
+这是项目的“脸面”。
+
+- **动态样式**: 使用 CSS 变量与动态 Class (`text-wuxing-fire` 等) 实现五行可视化。
+- **交互**: 集成 `BaguaSelect`，支持模糊搜索与分组显示。
+
+## 起局排盘规则详解 (Algorithm Specifications)
+
+本系统严格遵循传统奇门遁甲（时家奇门）排盘规则，并兼容了转盘与飞盘两种流派的差异。以下是核心算法的详细说明：
+
+### 1. 定局 (Ju Determination)
+
+- **排布依据**: 用户选定的遁局类型（阳遁/阴遁）与局数（1-9 局）。
+- **地盘排布**:
+  - **三奇六仪顺序**: 戊、己、庚、辛、壬、癸、丁、丙、乙。
+  - **阳遁**: 从局数对应的宫位开始，顺飞九宫（1→2→3...→9）。
+  - **阴遁**: 从局数对应的宫位开始，逆飞九宫（9→8→7...→1）。
+
+### 2. 寻旬首与值符值使 (Xun Shou & Zhi Fu/Zhi Shi)
+
+- **旬首计算**: 根据时干支推算旬首（如甲子、甲戌等）。
+  - 算法: `(时支序数 - 时干序数 + 12) % 12` 查六甲表。
+- **值符星**: 旬首落地盘宫位的原始星（如旬首落在坎 1 宫，值符星为天蓬）。
+- **值使门**: 旬首落地盘宫位的原始门（如旬首落在坎 1 宫，值使门为休门）。
+- **特殊处理**:
+  - 若旬首落在中 5 宫：
+    - **转盘**: 值符星取天禽（寄坤 2 宫的天芮星），值使门取死门（坤 2 宫）。
+    - **飞盘**: 值符星取天禽（独立），值使门取中 5 宫（若有）或遵循特定流派规则（通常飞盘中 5 无固定门，本系统兼容处理）。
+
+### 3. 排天盘 (Tian Pan Layout)
+
+- **原则**: 值符随时干。即将值符星（携带旬首干）转动/飞动到时干所在的地盘宫位。
+- **转盘法**:
+  - 逻辑: 八宫旋转（1→8→3→4→9→2→7→6）。
+  - 计算: 计算 `时干宫` 与 `值符宫` 的偏移量，所有宫位按此偏移量顺时针旋转。
+- **飞盘法**:
+  - 逻辑: 九宫顺飞（1→2→3→4→5→6→7→8→9）。
+  - 计算: 计算偏移量，所有宫位按数字顺序顺飞。
+
+### 4. 排九星 (Jiu Xing Layout)
+
+- **转盘法**: 九星随天盘旋转，与天盘干的排布路径一致。
+- **飞盘法**: 九星顺飞九宫。即天蓬 → 天芮 → 天冲...按宫位数字顺序依次排布。
+- **中 5 宫处理**:
+  - 转盘: 天禽星寄生于天芮星（坤 2 宫），通常显示为“天芮/天禽”。
+  - 飞盘: 天禽星独立居中 5 宫。
+
+### 5. 排八门 (Ba Men Layout)
+
+- **原则**: 值使随时宫。
+- **时宫计算**:
+  - 阳遁: `值使宫 = 值符宫 + (时支序 - 旬首序)`
+  - 阴遁: `值使宫 = 值符宫 - (时支序 - 旬首序)`
+- **排布**:
+  - **转盘**: 八门按坎 → 艮 → 震 → 巽 → 离 → 坤 → 兑 → 乾顺序旋转排布。
+  - **飞盘**: 八门顺飞九宫（遇中 5 宫跳过或寄宫，视流派而定；本系统采用标准顺飞跳过中 5 逻辑）。
+
+### 6. 排八神 (Ba Shen Layout)
+
+- **转盘法**:
+  - 顺序: 值符、腾蛇、太阴、六合、白虎、玄武、九地、九天。
+  - 排法: 阳遁顺排八宫，阴遁逆排八宫。小值符对大值符。
+- **飞盘法**:
+  - 顺序: 值符、腾蛇、太阴、六合、勾陈、朱雀、九地、九天、玄武（共 9 神）。
+  - 排法: 无论阴阳遁，均顺飞九宫。
+
+### 7. 空亡 (Kong Wang)
+
+- 根据时干支计算空亡地支，并在盘面上对应的宫位进行标记（UI 上通常以高亮或文字提示）。
+
+## 开发指南
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 启动开发环境
+
+```bash
+npm run tauri dev
+```
+
+或仅启动 Web 预览:
+
+```bash
+npm run dev
+```
+
+### 构建生产版本
+
+```bash
+npm run tauri build
+```
+
+## 扩展指南
+
+若需添加新的流派（如“茅山道人法”）：
+
+1.  在 `types/index.ts` 的 `PanStyle` 中添加新类型。
+2.  在 `utils/qimen.ts` 中扩展 `layout...` 函数，增加新的 `case` 分支处理特定排布逻辑。
+3.  在 `BaguaGrid.vue` 的下拉菜单中添加新选项。

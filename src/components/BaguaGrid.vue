@@ -36,6 +36,30 @@
 					</select>
 				</div>
 				<div class="param-group">
+					<span class="label">日期:</span>
+					<input
+						type="date"
+						v-model="dateStr"
+						class="input small-date"
+					/>
+				</div>
+				<div class="param-group">
+					<span class="label">节气:</span>
+					<select
+						v-model="selectedJieQi"
+						class="select small"
+					>
+						<option value="">(可选)</option>
+						<option
+							v-for="jq in JIE_QI"
+							:key="jq"
+							:value="jq"
+						>
+							{{ jq }}
+						</option>
+					</select>
+				</div>
+				<div class="param-group">
 					<span class="label">时辰:</span>
 					<select
 						v-model="shiGan"
@@ -84,6 +108,12 @@
 						@click="handleSave"
 					>
 						{{ t("grid.save") }}
+					</button>
+					<button
+						class="btn"
+						@click="handleExport"
+					>
+						导出文本
 					</button>
 					<span class="divider">|</span>
 					<span
@@ -141,6 +171,7 @@
 	import { useI18n } from "@/utils/i18n"
 	import { useToast } from "@/composables/useToast"
 	import type { AppConfig, PanStyle, DunType } from "@/types"
+	import { formatQiMenResult } from "@/utils/qimen"
 
 	const props = defineProps<{
 		config?: AppConfig
@@ -171,12 +202,50 @@
 		"戌",
 		"亥",
 	]
+	const JIE_QI = [
+		"立春",
+		"雨水",
+		"惊蛰",
+		"春分",
+		"清明",
+		"谷雨",
+		"立夏",
+		"小满",
+		"芒种",
+		"夏至",
+		"小暑",
+		"大暑",
+		"立秋",
+		"处暑",
+		"白露",
+		"秋分",
+		"寒露",
+		"霜降",
+		"立冬",
+		"小雪",
+		"大雪",
+		"冬至",
+		"小寒",
+		"大寒",
+	]
 
 	// UI State
 	const formName = ref<string>("")
 	const formCategory = ref<string>("")
 	const showOverlay = ref<boolean>(false)
-	const overlayLabels = ref<any[]>(Array(9).fill({})) // Compatibility with BaguaCell
+
+	// Create computed property for overlayLabels directly from cells
+	const overlayLabels = computed(() => {
+		return cells.value.map((cell) => {
+			if (!cell.qimen) return {}
+			return {
+				di: cell.qimen.diPan,
+				tian: cell.qimen.tianPan,
+				ren: cell.qimen.baMen,
+				shen: cell.qimen.baShen,
+			}
+		})
+	})
 
 	// Qimen Parameters
 	const panStyle = ref<PanStyle>("zhuan")
@@ -184,6 +253,8 @@
 	const juNum = ref<number>(1)
 	const shiGan = ref<string>("甲")
 	const shiZhi = ref<string>("子")
+	const dateStr = ref<string>(new Date().toISOString().slice(0, 10))
+	const selectedJieQi = ref<string>("")
 
 	const {
 		cells,
@@ -195,6 +266,7 @@
 		initializeGrid,
 		applyQiMenLayout,
 		qimenMeta,
+		currentQimenResult,
 	} = useGridState()
 
 	const selectedValues = computed(() => getAllSelectedValues())
@@ -223,6 +295,7 @@
 			shiGan.value,
 			shiZhi.value
 		)
+		showOverlay.value = true // Ensure overlay is shown after QiJu
 		showToast("排盘成功", "success")
 	}
 
@@ -243,6 +316,27 @@
 		showToast(t("grid.saveSuccess"), "success")
 		formName.value = ""
 		formCategory.value = ""
+	}
+
+	const handleExport = async () => {
+		if (!currentQimenResult.value) {
+			showToast("请先进行起局排盘", "error")
+			return
+		}
+
+		try {
+			const text = formatQiMenResult(
+				currentQimenResult.value,
+				panStyle.value,
+				dunType.value,
+				juNum.value
+			)
+			await navigator.clipboard.writeText(text)
+			showToast("排盘结果已复制到剪贴板", "success")
+		} catch (err) {
+			console.error(err)
+			showToast("复制失败", "error")
+		}
 	}
 
 	const onUpdate = (
@@ -312,6 +406,12 @@
 	.select.small {
 		padding: 0.35rem 0.5rem;
 		min-width: 70px;
+	}
+
+	.input.small-date {
+		padding: 0.35rem 0.5rem;
+		min-width: 120px;
+		font-size: 0.875rem;
 	}
 
 	.divider {

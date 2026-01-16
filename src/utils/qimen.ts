@@ -213,10 +213,13 @@ export function runQiMen(
 			break
 		}
 	}
-	if (zhiFuGong === 5) zhiFuGong = 2 // 寄宫：中5寄坤2 (转盘通常寄坤)
+	// 转盘奇门：中5寄坤2
+	// 飞盘奇门：中5独立
+	if (style === "zhuan" && zhiFuGong === 5) zhiFuGong = 2
 
 	const zhiFuXing = ORIGINAL_XING[zhiFuGong as keyof typeof ORIGINAL_XING]
-	const zhiShiMen = ORIGINAL_MEN[zhiFuGong as keyof typeof ORIGINAL_MEN] || "死" // 中5寄坤2死门
+	// 值使门：若值符在5宫，转盘/飞盘通常均借用死门(2宫)作为值使
+	const zhiShiMen = ORIGINAL_MEN[zhiFuGong as keyof typeof ORIGINAL_MEN] || "死"
 
 	// 3. 排天盘
 	// 值符随时干：即旬首(值符)加在时干的位置
@@ -621,4 +624,70 @@ export function getGridData(
 		})
 	}
 	return cells
+}
+
+/**
+ * 将排盘结果格式化为文本
+ */
+export function formatQiMenResult(
+	result: QiMenResult,
+	style: PanStyle,
+	dunType: DunType,
+	juNum: number
+): string {
+	const { meta, diPan, tianPan, baMen, jiuXing, baShen } = result
+	const dunStr = dunType === "yang" ? "阳遁" : "阴遁"
+	const styleStr = style === "zhuan" ? "转盘" : "飞盘"
+
+	let text = `【天衍·奇门排盘】\n`
+	text += `类型：${styleStr}${dunStr}${juNum}局\n`
+	text += `时间：${meta.shiGan}${
+		result.meta.kongWang ? " (空亡: " + result.meta.kongWang + ")" : ""
+	}\n`
+	text += `旬首：${meta.xunShou}  值符：${meta.zhiFu}  值使：${meta.zhiShi}\n`
+	text += `------------------------------------------------\n`
+
+	// 构造3x3网格文本
+	// 4 9 2
+	// 3 5 7
+	// 8 1 6
+	const rows = [
+		[4, 9, 2],
+		[3, 5, 7],
+		[8, 1, 6],
+	]
+
+	rows.forEach((row) => {
+		let line1 = "" // 神
+		let line2 = "" // 星
+		let line3 = "" // 门
+		let line4 = "" // 天/地
+
+		row.forEach((gong) => {
+			const shen = baShen[gong] || "　"
+			const star = jiuXing[gong] || "　"
+			const men = baMen[gong] || "　"
+			const tian = tianPan[gong] || " "
+			const di = diPan[gong] || " "
+
+			// 格式化对齐 (全角字符占位)
+			line1 += `|  ${pad(shen)}  `
+			line2 += `|  ${pad(star)}  `
+			line3 += `|  ${pad(men)}  `
+			line4 += `|  ${tian}/${di}   `
+		})
+		line1 += "|\n"
+		line2 += "|\n"
+		line3 += "|\n"
+		line4 += "|\n"
+
+		text += line1 + line2 + line3 + line4
+		text += `------------------------------------------------\n`
+	})
+
+	return text
+}
+
+function pad(str: string): string {
+	return str.length === 2 ? str : str + "　"
 }
