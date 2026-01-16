@@ -8,7 +8,10 @@
 				class="select-trigger ink-border ink-transition"
 				@click="toggleOpen"
 			>
-				<span class="selected-value">
+				<span
+					class="selected-value"
+					:class="customClass"
+				>
 					{{ selectedLabel || placeholder || t("grid.select") }}
 				</span>
 				<span
@@ -93,6 +96,7 @@
 		disabled?: boolean
 		searchable?: boolean
 		groupedOptions?: Record<string, SelectOption[]>
+		customClass?: string
 	}
 
 	interface Emits {

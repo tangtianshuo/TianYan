@@ -37,6 +37,7 @@
 					:options="getFilteredOptions(index)"
 					:grouped-options="groupedOptions"
 					placeholder="空"
+					:custom-class="getCustomClass(index, dropdown.selectedLabel)"
 					@update:model-value="(value) => handleSelect(index, value)"
 					@blur="
 						emit(
@@ -57,6 +58,7 @@
 	import BaguaSelect from "./BaguaSelect.vue"
 	import type { SelectOption, DropdownState, AppConfig } from "@/types"
 	import { ConfigManager } from "@/utils/config-loader"
+	import { JIU_XING_WUXING, BA_MEN_WUXING, WUXING } from "@/utils/qimen"
 
 	interface Props {
 		cellId: string
@@ -107,6 +109,22 @@
 
 		const label = option?.label || null
 		emit("update", index, value, label)
+	}
+
+	const getCustomClass = (index: number, label: string | null | undefined) => {
+		if (!label) return ""
+		let wx = ""
+		// Index 2: BaMen, Index 3: JiuXing
+		if (index === 2) {
+			wx = BA_MEN_WUXING[label]
+		} else if (index === 3) {
+			wx = JIU_XING_WUXING[label]
+		}
+
+		if (wx) {
+			return `text-wuxing-${wx}`
+		}
+		return ""
 	}
 
 	const loadConfig = async () => {
@@ -216,5 +234,29 @@
 		.cell-content {
 			grid-template-columns: 1fr;
 		}
+	}
+</style>
+
+<style>
+	/* 五行颜色 (全局工具类) */
+	.text-wuxing-water {
+		color: #000000 !important;
+		font-weight: bold;
+	}
+	.text-wuxing-fire {
+		color: #d93025 !important;
+		font-weight: bold;
+	}
+	.text-wuxing-wood {
+		color: #188038 !important;
+		font-weight: bold;
+	}
+	.text-wuxing-metal {
+		color: #e37400 !important;
+		font-weight: bold;
+	}
+	.text-wuxing-earth {
+		color: #8d6e63 !important;
+		font-weight: bold;
 	}
 </style>

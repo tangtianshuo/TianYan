@@ -1,115 +1,117 @@
 <template>
 	<div class="wrapper">
-		<div class="toolbar">
-			<div class="left">
-				<span class="label">{{ t("grid.operation") }}：</span>
-				<button
-					class="btn"
-					@click="handleSave"
-				>
-					{{ t("grid.save") }}
-				</button>
-				<!-- <button
-					v-if="false"
-					class="btn"
-					@click="handlePrint"
-				>
-					{{ t('grid.export') }}
-				</button> -->
-				<select
-					v-model="selectedDunJu"
-					class="select"
-				>
-					<option
-						v-for="o in dunJuOptions"
-						:key="o.id"
-						:value="o.value"
-					>
-						{{ o.label }}
-					</option>
-				</select>
-				<label class="label">
-					<input
-						type="checkbox"
-						v-model="enableJieQi"
-					/>
-					节气模式
-				</label>
-				<button
-					v-if="false"
-					class="btn"
-					@click="applyQimenLayout"
-				>
-					奇门排盘
-				</button>
-				<div class="time-controls">
-					<span class="label">时间：</span>
-					<label class="label">
-						<input
-							type="radio"
-							value="solar"
-							v-model="calendarMode"
-						/>阳历
-					</label>
-					<label class="label">
-						<input
-							type="radio"
-							value="lunar"
-							v-model="calendarMode"
-						/>阴历
-					</label>
-					<label class="label">
-						<input
-							type="radio"
-							value="jieqi"
-							v-model="calendarMode"
-						/>节气
-					</label>
-					<input
-						v-if="calendarMode !== 'jieqi'"
-						type="date"
-						v-model="dateStr"
-						class="input"
-					/>
-					<input
-						v-if="calendarMode !== 'jieqi'"
-						type="time"
-						v-model="timeStr"
-						class="input"
-					/>
+		<div class="toolbar-container">
+			<!-- Row 1: Qimen Parameters -->
+			<div class="toolbar-row params-row">
+				<div class="param-group">
+					<span class="label">排盘方式:</span>
 					<select
-						v-if="calendarMode === 'jieqi'"
-						v-model="selectedJieQi"
-						class="select"
+						v-model="panStyle"
+						class="select small"
+					>
+						<option value="zhuan">转盘奇门</option>
+						<option value="fei">飞盘奇门</option>
+					</select>
+				</div>
+				<div class="param-group">
+					<span class="label">遁局:</span>
+					<select
+						v-model="dunType"
+						class="select small"
+					>
+						<option value="yang">阳遁</option>
+						<option value="yin">阴遁</option>
+					</select>
+					<select
+						v-model="juNum"
+						class="select small"
 					>
 						<option
-							v-for="j in jieQiOptions"
-							:key="j"
-							:value="j"
+							v-for="n in 9"
+							:key="n"
+							:value="n"
 						>
-							{{ j }}
+							{{ n }}局
 						</option>
 					</select>
 				</div>
-			</div>
-			<div class="right">
-				<select
-					v-model="formCategory"
-					class="select"
+				<div class="param-group">
+					<span class="label">时辰:</span>
+					<select
+						v-model="shiGan"
+						class="select small"
+					>
+						<option
+							v-for="g in TIAN_GAN"
+							:key="g"
+							:value="g"
+						>
+							{{ g }}
+						</option>
+					</select>
+					<select
+						v-model="shiZhi"
+						class="select small"
+					>
+						<option
+							v-for="z in DI_ZHI"
+							:key="z"
+							:value="z"
+						>
+							{{ z }}
+						</option>
+					</select>
+				</div>
+				<button
+					class="btn primary"
+					@click="handleQiJu"
 				>
-					<option value="">{{ t("grid.uncategorized") }}</option>
-					<option value="金">金</option>
-					<option value="木">木</option>
-					<option value="水">水</option>
-					<option value="火">火</option>
-					<option value="土">土</option>
-				</select>
-				<input
-					v-model="formName"
-					type="text"
-					class="input"
-					:placeholder="t('grid.configName')"
-				/>
+					起局
+				</button>
+			</div>
+
+			<!-- Row 2: Operations & Info -->
+			<div class="toolbar-row operations-row">
+				<div class="left">
+					<button
+						class="btn"
+						@click="handleReset"
+					>
+						重置
+					</button>
+					<button
+						class="btn"
+						@click="handleSave"
+					>
+						{{ t("grid.save") }}
+					</button>
+					<span class="divider">|</span>
+					<span
+						class="info-text"
+						v-if="qimenMeta"
+					>
+						{{ juInfoText }}
+					</span>
+				</div>
+				<div class="right">
+					<select
+						v-model="formCategory"
+						class="select"
+					>
+						<option value="">{{ t("grid.uncategorized") }}</option>
+						<option value="金">金</option>
+						<option value="木">木</option>
+						<option value="水">水</option>
+						<option value="火">火</option>
+						<option value="土">土</option>
+					</select>
+					<input
+						v-model="formName"
+						type="text"
+						class="input"
+						:placeholder="t('grid.configName')"
+					/>
+				</div>
 			</div>
 		</div>
 
@@ -136,16 +138,9 @@
 	import { ref, computed, onMounted } from "vue"
 	import BaguaCell from "./BaguaCell.vue"
 	import { useGridState } from "@/composables/useGridState"
-	import { ConfigManager } from "@/utils/config-loader"
 	import { useI18n } from "@/utils/i18n"
 	import { useToast } from "@/composables/useToast"
-	import type { AppConfig } from "@/types"
-	import {
-		computeLayout,
-		parseDunJu,
-		inferDunByJieQi,
-		inferDunByJieQiName,
-	} from "@/utils/qimen"
+	import type { AppConfig, PanStyle, DunType } from "@/types"
 
 	const props = defineProps<{
 		config?: AppConfig
@@ -160,46 +155,35 @@
 		save: []
 	}>()
 
+	// Constants
+	const TIAN_GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
+	const DI_ZHI = [
+		"子",
+		"丑",
+		"寅",
+		"卯",
+		"辰",
+		"巳",
+		"午",
+		"未",
+		"申",
+		"酉",
+		"戌",
+		"亥",
+	]
+
+	// UI State
 	const formName = ref<string>("")
 	const formCategory = ref<string>("")
-
-	const dunJuOptions = ref<any[]>([])
-	const selectedDunJu = ref<string>("")
-	const enableJieQi = ref<boolean>(false)
-	const calendarMode = ref<"solar" | "lunar" | "jieqi">("solar")
-	const dateStr = ref<string>(new Date().toISOString().slice(0, 10))
-	const timeStr = ref<string>(new Date().toTimeString().slice(0, 5))
-	const selectedJieQi = ref<string>("立春")
-	const jieQiOptions = [
-		"立春",
-		"雨水",
-		"惊蛰",
-		"春分",
-		"清明",
-		"谷雨",
-		"立夏",
-		"小满",
-		"芒种",
-		"夏至",
-		"小暑",
-		"大暑",
-		"立秋",
-		"处暑",
-		"白露",
-		"秋分",
-		"寒露",
-		"霜降",
-		"立冬",
-		"小雪",
-		"大雪",
-		"冬至",
-		"小寒",
-		"大寒",
-	]
 	const showOverlay = ref<boolean>(false)
-	const overlayLabels = ref<
-		Array<{ di?: string; tian?: string; ren?: string; shen?: string }>
-	>(Array(9).fill({}))
+	const overlayLabels = ref<any[]>(Array(9).fill({})) // Compatibility with BaguaCell
+
+	// Qimen Parameters
+	const panStyle = ref<PanStyle>("zhuan")
+	const dunType = ref<DunType>("yang")
+	const juNum = ref<number>(1)
+	const shiGan = ref<string>("甲")
+	const shiZhi = ref<string>("子")
 
 	const {
 		cells,
@@ -209,25 +193,45 @@
 		saveGridState,
 		deserializeGridState,
 		initializeGrid,
+		applyQiMenLayout,
+		qimenMeta,
 	} = useGridState()
 
 	const selectedValues = computed(() => getAllSelectedValues())
-
-	const selectedDate = computed(() => {
-		const [h, m] = timeStr.value.split(":").map((x) => parseInt(x || "0", 10))
-		const d = new Date(`${dateStr.value}T00:00:00`)
-		d.setHours(h || 0, m || 0, 0, 0)
-		return d
-	})
 
 	const disabled = computed(() => {
 		return Array.from(props.mutualExclusiveValues || new Set<string>())
 	})
 
+	const juInfoText = computed(() => {
+		if (!qimenMeta.value) return ""
+		const { dunType, juNum, shiGan, shiZhi, xunShou, zhiFu, zhiShi } =
+			qimenMeta.value
+		const dunStr = dunType === "yang" ? "阳遁" : "阴遁"
+		return `${dunStr}${juNum}局 ${shiGan}${shiZhi}时 旬首:${xunShou} 值符:${zhiFu} 值使:${zhiShi}`
+	})
+
 	onMounted(() => {
 		initializeGrid()
-		loadDunJu()
 	})
+
+	const handleQiJu = () => {
+		applyQiMenLayout(
+			panStyle.value,
+			dunType.value,
+			juNum.value,
+			shiGan.value,
+			shiZhi.value
+		)
+		showToast("排盘成功", "success")
+	}
+
+	const handleReset = () => {
+		initializeGrid()
+		formName.value = ""
+		formCategory.value = ""
+		showToast("已重置", "success")
+	}
 
 	const handleSave = (): void => {
 		if (!formName.value.trim()) {
@@ -241,10 +245,6 @@
 		formCategory.value = ""
 	}
 
-	// const handlePrint = (): void => {
-	// 	printGridStateToConsole()
-	// }
-
 	const onUpdate = (
 		cellId: string,
 		dropdownIndex: number,
@@ -256,73 +256,6 @@
 			selectedValues: selectedValues.value,
 			count: selectedValues.value.length,
 		})
-		refreshOverlay()
-	}
-
-	const loadDunJu = async () => {
-		try {
-			const opts = await ConfigManager.getOptionsForCategory("遁局")
-			dunJuOptions.value = opts
-			selectedDunJu.value = opts[0]?.value || "yang1"
-		} catch (e) {}
-	}
-
-	const refreshOverlay = async () => {
-		const base = parseDunJu(selectedDunJu.value || "yang1")
-		const dun =
-			calendarMode.value === "jieqi"
-				? inferDunByJieQiName(selectedJieQi.value, base)
-				: enableJieQi.value
-				? inferDunByJieQi(selectedDate.value, base)
-				: base
-		const layout = computeLayout(selectedDate.value, dun)
-
-		const isSanQi = (v: string) => v === "yi" || v === "bing" || v === "ding"
-
-		let ganMap = new Map<string, string>()
-		let menMap = new Map<string, string>()
-		let shenMap = new Map<string, string>()
-		try {
-			const gan = await ConfigManager.getOptionsForCategory("天干")
-			gan.forEach((o: any) => ganMap.set(o.value, o.label))
-			const men = await ConfigManager.getOptionsForCategory("八门")
-			men.forEach((o: any) => menMap.set(o.value, o.label))
-			const shen = await ConfigManager.getOptionsForCategory("八神")
-			shen.forEach((o: any) => shenMap.set(o.value, o.label))
-		} catch {}
-
-		cells.value.forEach((cell, idx) => {
-			const diVal = layout.diPan[idx]
-			if (isSanQi(diVal)) {
-				updateDropdownValue(cell.cellId, 0, diVal, null)
-				updateDropdownValue(cell.cellId, 1, null, null)
-			} else {
-				updateDropdownValue(cell.cellId, 1, diVal, null)
-				updateDropdownValue(cell.cellId, 0, null, null)
-			}
-
-			const menVal = layout.renPan[idx]
-			updateDropdownValue(cell.cellId, 2, menVal, null)
-
-			const starVal = layout.jiuXing[idx]
-			updateDropdownValue(cell.cellId, 3, starVal, null)
-			overlayLabels.value[idx] = {
-				di: ganMap.get(diVal) || diVal,
-				tian: ganMap.get(layout.tianPan[idx]) || layout.tianPan[idx],
-				ren: menMap.get(menVal) || menVal,
-				shen: shenMap.get(layout.baShen[idx]) || layout.baShen[idx],
-			}
-		})
-
-		emit("state-change", {
-			selectedValues: selectedValues.value,
-			count: selectedValues.value.length,
-		})
-		showOverlay.value = true
-	}
-
-	const applyQimenLayout = async () => {
-		await refreshOverlay()
 	}
 
 	defineExpose({
@@ -340,30 +273,62 @@
 		gap: 1.5rem;
 	}
 
-	.toolbar {
+	.toolbar-container {
 		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		flex-direction: column;
+		gap: 0.75rem;
 		padding: 1rem;
 		background-color: var(--color-card);
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-md);
+	}
+
+	.toolbar-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 		gap: 1rem;
 		flex-wrap: wrap;
 	}
 
-	.left,
-	.right {
-		display: flex;
-		gap: 0.75rem;
-		align-items: center;
-		flex-wrap: wrap;
+	.params-row {
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid var(--color-border);
 	}
 
-	.time-controls {
+	.param-group {
 		display: flex;
-		gap: 0.5rem;
 		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.operations-row .left,
+	.operations-row .right {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.select.small {
+		padding: 0.35rem 0.5rem;
+		min-width: 70px;
+	}
+
+	.divider {
+		color: var(--color-border);
+		margin: 0 0.25rem;
+	}
+
+	.info-text {
+		font-size: 0.875rem;
+		color: var(--color-primary);
+		font-weight: 600;
+	}
+
+	.btn.primary {
+		background-color: var(--color-primary);
+		color: var(--color-primary-foreground);
+		border-color: var(--color-primary);
 	}
 
 	.label {
@@ -432,14 +397,23 @@
 	}
 
 	@media (max-width: 768px) {
-		.toolbar {
+		.toolbar-row {
 			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.75rem;
+		}
+
+		.params-row {
 			align-items: flex-start;
 		}
 
-		.right {
+		.param-group {
 			width: 100%;
-			gap: 0.5rem;
+			justify-content: space-between;
+		}
+
+		.operations-row .right {
+			width: 100%;
 		}
 
 		.input {
